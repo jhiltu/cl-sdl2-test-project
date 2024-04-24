@@ -1,4 +1,5 @@
 ;;;; package.lisp
 
 (defpackage #:test-project
-  (:use #:cl))
+  (:use #:cl)
+  (:export #:gogo))
