@@ -1,37 +1,33 @@
 (in-package #:test-project)
 
-(def-keys
-    ((:scancode-w (incf *x* (* dx dt)))
-     (:scancode-d (incf *x* (* dx dt)))))
+(defparameter *keys* '())
 
-;; (defmacro def-keys (keys) ...) ?
+(defun setup-keys (bindings)
+  (log:info bindings)
+  (setf *keys* bindings))
+  
+(defun make-key (fn)
+  (list :fn fn :down nil))
 
-;; old stuff below
-(defclass interesting-keys ()
-  ((key-left :initform nil)
-   (key-right :initform nil)
-   (key-up :initform nil)
-   (key-down :initform nil)))
-
-(defparameter *keysdown* (make-instance 'interesting-keys))
-
-(defparameter *x* 100.0)
-(defparameter *y* 100.0)
-(defparameter vx 150.0)
-(defparameter vy 150.0)
+(setup-keys (list
+	     :scancode-escape (make-key (lambda (x) (sdl2:quit)))
+	     :scancode-q (make-key (lambda (x) (sdl2:quit)))
+	     :scancode-w (make-key (lambda (x) (print "w")))
+	     :scancode-s (make-key (lambda (x) (print "s")))
+	     :scancode-a (make-key (lambda (x) (print "a")))
+	     :scancode-d (make-key (lambda (x) (print "d")))))
 
 (defun handle-key (keysym updown)
-  (let ((keyname (case (sdl2:scancode keysym)
-		   (:scancode-w 'key-up)
-		   (:scancode-a 'key-left)
-		   (:scancode-s 'key-down)
-		   (:scancode-d 'key-right)
-		   (t nil))))
+  (let* ((scancode (sdl2:scancode keysym))
+	 (keyname (getf *keys* scancode)))
     (when keyname
-      (setf (slot-value *keysdown* keyname) (eq :down updown)))))
+      (setf (getf (getf *keys* scancode) :down) (eq :down updown)))))
+
+(defun check-keys (dt)
+  (loop
+    for (key value) on *keys* by #'cddr
+    when (getf value :down)
+      do (funcall (getf value :fn) dt)))
 
 (defun update-world (dt)
-  (when (slot-value *keysdown* 'key-right) (incf *x* (* vx dt)))
-  (when (slot-value *keysdown* 'key-left) (incf *x* (* vx dt -1)))
-  (when (slot-value *keysdown* 'key-up) (incf *y* (* vy dt -1)))
-  (when (slot-value *keysdown* 'key-down) (incf *y* (* vy dt))))
+  (check-keys dt))

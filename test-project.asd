@@ -6,6 +6,7 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on ("sdl2")
+  :depends-on ("sdl2" "log4cl")
   :components ((:file "package")
-               (:file "test-project")))
+	       (:file "keys" :depends-on ("package"))
+	       (:file "test-project" :depends-on ("keys"))))
